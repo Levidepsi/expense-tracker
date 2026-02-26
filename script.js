@@ -9,7 +9,6 @@ const defaultExpenseItems = [
   { description: "Savings", amount: 3000, type: "income", id: 8 }
 ];
 
-
   const currencySelect = document.getElementById("currency-select");
 
   // Load saved currency or default to PHP
@@ -213,21 +212,76 @@ const updateTotals = () => {
     expensePercent = (expenseSum / largest) * 100;
   }
 
-  incomeLine.style.width = incomePercent + "%";
-  expenseLine.style.width = expensePercent + "%";
+  // ✅ Apply height correctly (NO subtraction)
+  incomeLine.style.height = incomePercent + "%";
+  expenseLine.style.height = expensePercent + "%";
 
   const totalBalance = incomeSum - expenseSum;
 
-  document.getElementById("expense-total").textContent = formatMoney(expenseSum.toFixed(2)) ;
-  document.getElementById("income-total").textContent = formatMoney(incomeSum.toFixed(2))
-  document.getElementById("balance-total").textContent = formatMoney(totalBalance.toFixed(2));
+  document.getElementById("expense-total").textContent = formatMoney(expenseSum);
+  document.getElementById("income-total").textContent = formatMoney(incomeSum);
+  document.getElementById("balance-total").textContent = formatMoney(totalBalance);
+
+  // ✅ ===== SAVE MONTHLY DATA =====
+  const now = new Date();
+  const currentMonth = now.getFullYear() + "-" + (now.getMonth() + 1);
+
+  // Get stored month tracker
+  const storedMonth = localStorage.getItem("current-month");
+
+  // Get all monthly saved data
+  const monthlyData = JSON.parse(localStorage.getItem("monthly-data")) || {};
+
+  // 🚨 If month changed
+  if (storedMonth && storedMonth !== currentMonth) {
+    // Save PREVIOUS month data before switching
+    monthlyData[storedMonth] = {
+      income: incomeSum,
+      expense: expenseSum
+    };
+
+    localStorage.setItem("monthly-data", JSON.stringify(monthlyData));
+  }
+
+  // Update current month tracker
+  localStorage.setItem("current-month", currentMonth);
 };
+
+function renderPreviousMonth() {
+  const container = document.getElementById("previous-month-summary");
+  const monthlyData = JSON.parse(localStorage.getItem("monthly-data")) || {};
+
+  const now = new Date();
+  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+  const prevMonthKey =
+    prevDate.getFullYear() + "-" + (prevDate.getMonth() + 1);
+
+  const prevData = monthlyData[prevMonthKey];
+
+  if (!prevData) {
+    container.innerHTML = "<p>No previous month data.</p>";
+    return;
+  }
+
+  const monthName = prevDate.toLocaleString("default", { month: "long" });
+  const year = prevDate.getFullYear();
+
+  container.innerHTML = `
+    <div class="month-summary">
+      <h3>${monthName} ${year}</h3>
+      <p>Income: <span class="green">${formatMoney(prevData.income)}</span></p>
+      <p>Expenses: <span class="red">${formatMoney(prevData.expense)}</span></p>
+    </div>
+  `;
+}
 
 
 // renderTotalIncome()
 // renderTotalExpenses()
 renderItems()
 updateTotals()
+renderPreviousMonth()
 
 
 if ("serviceWorker" in navigator) {

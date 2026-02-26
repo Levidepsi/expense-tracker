@@ -107,7 +107,7 @@ body {
 }
 
 .form-card {
-  max-height: 400px;
+  max-height: 800px;
 }
 
 /* FORM */
@@ -370,22 +370,45 @@ input:focus {
 
 .income-line,
 .expenses-line {
-  transition: width 0.4s ease;
+  transition: height 0.4s ease;
 }
 
 .comparison-bar {
   display: flex;
   width: 100%;
   overflow: hidden;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: baseline;
   gap: 5px;
+  height: 150px;
+  justify-content: center;
 }
 
 .income-line {
-  height: 5px;
+  width: 100px;
   background-color: #16a34a;
 }
 .expenses-line {
   background-color: #dc2626;
-  height: 5px;
+  width: 100px;
+}
+
+#previous-month-summary {
+  margin-top: 20px;
+}
+
+.month-summary {
+  padding: 12px;
+  border-radius: 10px;
+  background: #f3f4f6;
+}
+
+.green {
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.red {
+  color: #ef4444;
+  font-weight: bold;
 }
