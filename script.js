@@ -94,7 +94,7 @@ const renderItems = () => {
           <input type="number" value="${item.amount}" readonly class="amount-input"/>
         </div>
         <div class="money-item-btn-wrapper">
-          <button onclick="editItem(${index})" class="edit-btn">Edit</button>
+          <button onclick="editItem(${index}, this)" class="edit-btn">Edit</button>
           <button onclick="deleteItem(${index})" class="delete-btn">Delete</button>
         </div>
       </div>
@@ -140,21 +140,16 @@ const deleteItem = (id) => {
   updateTotals()
 }
 
-const editItem = (id) => {
+const editItem = (id, button) => {
   const input = document.querySelectorAll('.item-input')[id];
   const inputAmount = document.querySelectorAll('.amount-input')[id];
 
   if (!input || !inputAmount) return;
 
-  input.removeAttribute("readonly");
-  inputAmount.removeAttribute("readonly");
+  const isEditing = button.textContent === "Done";
 
-  input.classList.add("editing");
-  inputAmount.classList.add("editing");
-
-  input.focus();
-
-  const saveChanges = () => {
+  // 🟢 If currently editing → SAVE
+  if (isEditing) {
     sortedItems[id].description = input.value.trim();
     sortedItems[id].amount = Number(inputAmount.value) || 0;
 
@@ -166,18 +161,23 @@ const editItem = (id) => {
     input.classList.remove("editing");
     inputAmount.classList.remove("editing");
 
+    button.textContent = "Edit";
+
     renderItems();
-    updateTotals()
-  };
+    updateTotals();
 
-  const handleKey = (e) => {
-    if (e.key === "Enter") {
-      saveChanges();
-    }
-  };
+  } else {
+    // 🔵 If not editing → ENABLE edit mode
+    input.removeAttribute("readonly");
+    inputAmount.removeAttribute("readonly");
 
-  input.addEventListener("keydown", handleKey);
-  inputAmount.addEventListener("keydown", handleKey);
+    input.classList.add("editing");
+    inputAmount.classList.add("editing");
+
+    input.focus();
+
+    button.textContent = "Done";
+  }
 };
 
 // total balance const totalBalance = incomeSum - expenseSum;
