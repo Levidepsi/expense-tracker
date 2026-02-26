@@ -5,6 +5,21 @@
   font-family: "Inter", "Segoe UI", sans-serif;
 }
 
+.currency-wrapper {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+#currency-select {
+  appearance: none;
+  padding: 8px 35px 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 body {
   background: #f1f5f9;
   padding: 40px 20px;
