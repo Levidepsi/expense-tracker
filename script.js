@@ -46,12 +46,15 @@ let storedItems = JSON.parse(localStorage.getItem('money-items'));
 const typeOrder = ["income", "expense",];
 
 const sortedItems = storedItems.sort((a, b) => {
-  const indexA = typeOrder.findIndex(type => a.type === type);
-  const indexB = typeOrder.findIndex(type => b.type === type);
-  // salary first and 
-  return indexA - indexB ;
-})
+  const indexA = typeOrder.indexOf(a.type);
+  const indexB = typeOrder.indexOf(b.type);
 
+  // 1️⃣ Sort by type (income first)
+  if (indexA !== indexB) {
+    return indexA - indexB;
+  }
+
+});
 
 let filterValue = "All";
 let newFilterValue = filterValue.toLowerCase()
@@ -120,8 +123,9 @@ addBtn.addEventListener(("click"), () => {
   const amount = document.getElementById('amount');
 
   if (description.value.trim() && Number(amount.value)) {
-    sortedItems.push({ description: description.value, amount: Number(amount.value), type: type })
-    localStorage.setItem("money-items", JSON.stringify(storedItems))
+    sortedItems.push({ description: description.value, amount: Number(amount.value), type: type, id: sortedItems.length + 1 })
+    sortItems();
+    localStorage.setItem("money-items", JSON.stringify(sortedItems))
     description.value = "";
     amount.value = "";
     type = "";
@@ -186,6 +190,7 @@ const editItem = (id, button) => {
 
 const expenseTotalSpan = document.getElementById("expense-total");
 const incomeTotalSpan = document.getElementById("income-total");
+const incomeSavingsTotalSpan = document.getElementById("income-savings-total");
 
 
 // create a function to handle state when updates
@@ -204,26 +209,33 @@ const updateTotals = () => {
 
   const incomeLine = document.querySelector(".income-line");
   const expenseLine = document.querySelector(".expenses-line");
+  const savingsLine = document.querySelector(".savings-line");
 
   const largest = Math.max(incomeSum, expenseSum);
 
   let incomePercent = 0;
   let expensePercent = 0;
+  let savingsPercent = 0;
 
   if (largest > 0) {
     incomePercent = (incomeSum / largest) * 100;
     expensePercent = (expenseSum / largest) * 100;
+    savingsPercent = (savingsSum / largest) * 100;
   }
 
   // ✅ Apply height correctly (NO subtraction)
   incomeLine.style.height = incomePercent + "%";
   expenseLine.style.height = expensePercent + "%";
+  savingsLine.style.height = savingsPercent + "%";
 
-  const totalBalance = incomeSum - expenseSum - savingsSum;
+  const newIncomeSum = incomeSum - savingsSum
+
+  const totalBalance = incomeSum - expenseSum;
 
   document.getElementById("expense-total").textContent = formatMoney(expenseSum);
   document.getElementById("income-total").textContent = formatMoney(incomeSum);
   document.getElementById("balance-total").textContent = formatMoney(totalBalance);
+  document.getElementById("income-savings-total").textContent = formatMoney(newIncomeSum);
 
   // ✅ ===== SAVE MONTHLY DATA =====
   const now = new Date();
@@ -240,7 +252,8 @@ const updateTotals = () => {
     // Save PREVIOUS month data before switching
     monthlyData[storedMonth] = {
       income: incomeSum,
-      expense: expenseSum
+      expense: expenseSum,
+      savings: savingsSum
     };
 
     localStorage.setItem("monthly-data", JSON.stringify(monthlyData));
@@ -275,6 +288,7 @@ function renderPreviousMonth() {
       <h3>${monthName} ${year}</h3>
       <p>Income: <span class="green">${formatMoney(prevData.income)}</span></p>
       <p>Expenses: <span class="red">${formatMoney(prevData.expense)}</span></p>
+      <p>Expenses: <span class="blue">${formatMoney(prevData.savingsSum)}</span></p>
     </div>
   `;
 }
@@ -282,7 +296,19 @@ function renderPreviousMonth() {
 
 // renderTotalIncome()
 // renderTotalExpenses()
+function sortItems() {
+  sortedItems.sort((a, b) => {
+    const indexA = typeOrder.indexOf(a.type);
+    const indexB = typeOrder.indexOf(b.type);
+
+    // Only sort by type
+    return indexA - indexB;
+  });
+}
+
 renderItems()
+sortItems()
+
 updateTotals()
 renderPreviousMonth()
 
