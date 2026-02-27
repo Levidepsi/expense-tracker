@@ -1,44 +1,40 @@
-const CACHE_NAME = "expense-tracker-v3";
+const CACHE_NAME = "expense-tracker-v5";
 
-const FILES_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/style.css",
-  "/script.js",
-  "/manifest.json"
-];
-
-// Install
+// Install (optional pre-cache minimal files)
 self.addEventListener("install", (event) => {
-  self.skipWaiting(); // activate immediately
-
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(FILES_TO_CACHE))
-  );
+  self.skipWaiting();
 });
 
 // Activate (delete old caches)
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
+    caches.keys().then((names) =>
+      Promise.all(
+        names.map((name) => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
           }
         })
-      );
-    })
+      )
+    )
   );
 
-  self.clients.claim(); // take control immediately
+  self.clients.claim();
 });
 
-// Fetch
+// Network First + Save Fresh Copy
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => response || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const responseClone = response.clone();
+
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
+
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
