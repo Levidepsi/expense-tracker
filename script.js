@@ -45,7 +45,7 @@ let storedItems = JSON.parse(localStorage.getItem('money-items'));
 
 const typeOrder = ["income", "expense",];
 
-const sortedItems = storedItems.sort((a, b, c) => {
+const sortedItems = storedItems.sort((a, b) => {
   const indexA = typeOrder.findIndex(type => a.type === type);
   const indexB = typeOrder.findIndex(type => b.type === type);
   // salary first and 
@@ -76,7 +76,6 @@ const renderItems = () => {
       item.type === filterValue.toLowerCase()
     );
   }
-
 
   itemsToRender.forEach((item, index) => {
     
@@ -196,7 +195,11 @@ const updateTotals = () => {
     .reduce((acc, item) => acc + item.amount, 0);
 
   const incomeSum = sortedItems
-    .filter(item => item.type === "income")
+    .filter(item => item.type === "income" && !item.description.toLowerCase().includes("savings"))
+    .reduce((acc, item) => acc + item.amount, 0);
+
+  const savingsSum = sortedItems
+    .filter(item => item.type === "income" && item.description.toLowerCase().includes("savings"))
     .reduce((acc, item) => acc + item.amount, 0);
 
   const incomeLine = document.querySelector(".income-line");
@@ -216,7 +219,7 @@ const updateTotals = () => {
   incomeLine.style.height = incomePercent + "%";
   expenseLine.style.height = expensePercent + "%";
 
-  const totalBalance = incomeSum - expenseSum;
+  const totalBalance = incomeSum - expenseSum - savingsSum;
 
   document.getElementById("expense-total").textContent = formatMoney(expenseSum);
   document.getElementById("income-total").textContent = formatMoney(incomeSum);
