@@ -150,6 +150,8 @@ addBtn.addEventListener(("click"), () => {
     type_button.forEach(btn => btn.classList.remove("selected"));
     renderItems()
     updateTotals()
+    updateSavingsInput()
+
   }
 })
 
@@ -163,6 +165,8 @@ const deleteItem = (id) => {
   localStorage.setItem("money-items", JSON.stringify(sortedItems))
   renderItems()
   updateTotals()
+    updateSavingsInput()
+
 }
 
 
@@ -195,6 +199,7 @@ const editItem = (id, button) => {
 
     renderItems();
     updateTotals();
+    updateSavingsInput()
 
   } else {
     // 🔵 If not editing → ENABLE edit mode
@@ -333,9 +338,47 @@ function sortItems() {
   });
 }
 
+let savings_btn = document.getElementById("savings-btn")
+let savings_input = document.querySelector(".total-savings-input")
+
+const updateSavingsInput = () => {
+
+  const findSaving = sortedItems.find(item =>
+    item.description.includes("Savings")
+  );
+
+  const getSavingsTotal =
+    Number(localStorage.getItem("savingsTotal")) || 0;
+
+  const savingAmount =
+    findSaving ? Number(findSaving.amount) : 0;
+
+  savings_input.value = getSavingsTotal + savingAmount;
+};
+
+savings_btn.addEventListener("click", () => {
+  const isEditing = savings_btn.textContent === "Done";
+  console.log("clicking")
+  if (isEditing) {
+    let savingsValue = Number(savings_input.value)
+    
+    localStorage.setItem('savingsTotal', savingsValue);
+    const getSavingsTotal = localStorage.getItem('savingsTotal')
+    savings_input.setAttribute("readonly", true);
+    
+    savings_btn.textContent = "Edit/Add Savings";
+    updateSavingsInput()
+
+  } else {
+    savings_input.removeAttribute("readonly", true);
+    savings_input.focus();
+    savings_btn.textContent ="Done"
+  }
+})
+
 renderItems()
 sortItems()
-
+updateSavingsInput()
 updateTotals()
 renderPreviousMonth()
 
