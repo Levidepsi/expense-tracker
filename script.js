@@ -235,9 +235,7 @@ const updateTotals = () => {
     .filter(item => item.type === "income" && !item.description.toLowerCase().includes("savings"))
     .reduce((acc, item) => acc + item.amount, 0);
 
-  const savingsSum = sortedItems
-    .filter(item => item.type === "income" && item.description.toLowerCase().includes("savings"))
-    .reduce((acc, item) => acc + item.amount, 0);
+  const savingsSum = localStorage.getItem("addedSavingsTotal")
 
   const incomeLine = document.querySelector(".income-line");
   const expenseLine = document.querySelector(".expenses-line");
@@ -340,6 +338,7 @@ function sortItems() {
 
 let savings_btn = document.getElementById("savings-btn")
 let savings_input = document.querySelector(".total-savings-input")
+let savings_input_hidden = document.querySelector(".total-savings-input-hidden")
 
 const updateSavingsInput = () => {
 
@@ -350,30 +349,55 @@ const updateSavingsInput = () => {
   const getSavingsTotal =
     Number(localStorage.getItem("savingsTotal")) || 0;
 
-  const savingAmount =
-    findSaving ? Number(findSaving.amount) : 0;
 
-  savings_input.value = getSavingsTotal + savingAmount;
+  savings_input.value = getSavingsTotal ;
 };
 
 savings_btn.addEventListener("click", () => {
   const isEditing = savings_btn.textContent === "Done";
-  console.log("clicking")
-  if (isEditing) {
-    let savingsValue = Number(savings_input.value)
-    
-    localStorage.setItem('savingsTotal', savingsValue);
-    const getSavingsTotal = localStorage.getItem('savingsTotal')
-    savings_input.setAttribute("readonly", true);
-    
-    savings_btn.textContent = "Edit/Add Savings";
-    updateSavingsInput()
 
+  if (isEditing) {
+    let inputValue = Number(savings_input.value) || 0;
+
+    let addedAmount = inputValue
+
+   
+    const currentSavings =
+      Number(localStorage.getItem("savingsTotal")) || 0;
+
+    const newTotal = inputValue < currentSavings ? currentSavings - inputValue : inputValue > currentSavings ? inputValue : currentSavings + inputValue;
+     if (inputValue > currentSavings) {
+      addedAmount = inputValue - currentSavings
+     } else if(inputValue < currentSavings) {
+       addedAmount = 0
+    }
+
+    localStorage.setItem("savingsTotal", newTotal);
+    localStorage.setItem("addedSavingsTotal", addedAmount);
+
+    savings_input_hidden.value = newTotal;
+
+    savings_input.setAttribute("readonly", true);
+    savings_btn.textContent = "Edit/Add Savings";
+
+    updateSavingsInput();
+    updateTotals()
   } else {
-    savings_input.removeAttribute("readonly", true);
+    savings_input.removeAttribute("readonly");
+    savings_input.value = ""; // optional: clear input when adding
     savings_input.focus();
-    savings_btn.textContent ="Done"
+    savings_btn.textContent = "Done";
   }
+});
+
+const clear_btn = document.getElementById("clear-btn")
+
+
+clear_btn.addEventListener("click", () => {
+  localStorage.setItem("savingsTotal", 0);
+  localStorage.setItem("addedSavingsTotal", 0);
+  updateSavingsInput();
+  updateTotals()
 })
 
 renderItems()

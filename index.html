@@ -70,16 +70,31 @@
 
       </div>
       <h2>Total Savings</h2>
+      <p style="padding-bottom: 10px; padding-top: 10px;">
+        Enter your updated total savings amount.
+        Example: Current savings 4,000 + 4,000 added = 8,000 → enter 8,000.
+        </p>
+
+        <p style="padding-bottom: 10px;">
+        If reducing savings, enter the new total.
+        Example: 8,000 reduced to 7,000 → enter 1,000 to reduce to 7000.
+        </p>
+        <p style="padding-bottom: 10;">
+        Any updates to your savings Added will automatically 
+        reflect in the <strong>Income minus Savings Total</strong> above.
+        </p>
       <div class="total-savings-wrapper">
+        <input type="number" class="total-savings-input-hidden" hidden>
         <input type="number" class="total-savings-input" readonly>
         <button id="savings-btn" class="savings-btn">Edit/Add Savings</button>
+        <button id="clear-btn" class="savings-btn">Clear Savings</button>
       </div>
       <div class="main">
 
         <div class="card form-card">
           
           <h3>Add Transaction</h3>
-          <p style="padding-bottom: 20px;">When Savings is added it is reduced to the total income</p>
+          <!-- <p style="padding-bottom: 20px;">When Savings is added it is reduced to the total income</p> -->
 
           <div id="transaction-form">
 
