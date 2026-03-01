@@ -353,32 +353,45 @@ function sortItems() {
 
 const savings_btn = document.getElementById("savings-btn");
 const clear_btn = document.getElementById("clear-btn");
+
 const savings_input = document.querySelector(".total-savings-input");
-const savings_input_hidden = document.querySelector(".total-savings-input-hidden");
+const savings_display = document.querySelector(".total-savings");
 
-// Get current month key (ex: 2026-2)
-const currentMonth = localStorage.getItem("current-month");
+// Get current month helper
+const getCurrentMonth = () => {
+  const now = new Date();
+  return now.getFullYear() + "-" + (now.getMonth() + 1);
+};
 
-// Update displayed savings total
-const updateSavingsInput = () => {
-  if (localStorage.getItem("savingsTotal") === null) {
-    localStorage.setItem("savingsTotal", 3000); // 👈 your initial savings
-  }
+// ✅ Initialize default savings (ONLY once)
+if (localStorage.getItem("savingsTotal") === null) {
+  localStorage.setItem("savingsTotal", 3000);
+}
+
+// ✅ Update displayed savings
+const updateSavingsDisplay = () => {
   const totalSavings =
     Number(localStorage.getItem("savingsTotal")) || 0;
 
-  savings_input.value = totalSavings;
+  savings_display.textContent = formatMoney(totalSavings);
+  savings_input.value = totalSavings; // preload value when editing
 };
-// Add Savings
+
+updateSavingsDisplay();
+
+
+// ==============================
+// EDIT / ADD SAVINGS
+// ==============================
 savings_btn.addEventListener("click", () => {
+
   const isEditing = savings_btn.textContent === "Done";
 
   if (isEditing) {
 
     const newInputTotal = Number(savings_input.value) || 0;
 
-    const now = new Date();
-    const currentMonth = now.getFullYear() + "-" + (now.getMonth() + 1);
+    const currentMonth = getCurrentMonth();
 
     const currentTotal =
       Number(localStorage.getItem("savingsTotal")) || 0;
@@ -386,15 +399,16 @@ savings_btn.addEventListener("click", () => {
     const currentMonthSavings =
       Number(localStorage.getItem(`monthlySavings-${currentMonth}`)) || 0;
 
-    // 🔥 Calculate only the difference
+    // Calculate difference
     const difference = newInputTotal - currentTotal;
 
     // Update lifetime total
     localStorage.setItem("savingsTotal", newInputTotal);
 
-    // Update this month's savings by difference
-    const updatedMonthSavings = currentMonthSavings + difference;
+    // Update this month's savings (ONLY difference)
+    let updatedMonthSavings = currentMonthSavings + difference;
 
+    // Prevent negative monthly savings
     if (updatedMonthSavings < 0) {
       updatedMonthSavings = 0;
     }
@@ -407,7 +421,7 @@ savings_btn.addEventListener("click", () => {
     savings_input.setAttribute("readonly", true);
     savings_btn.textContent = "Edit/Add Savings";
 
-    updateSavingsInput();
+    updateSavingsDisplay();
     updateTotals();
 
   } else {
@@ -415,20 +429,28 @@ savings_btn.addEventListener("click", () => {
     savings_input.focus();
     savings_btn.textContent = "Done";
   }
+
 });
 
-// Clear All Savings
+
+// ==============================
+// CLEAR SAVINGS
+// ==============================
 clear_btn.addEventListener("click", () => {
+
+  const currentMonth = getCurrentMonth();
+
   localStorage.setItem("savingsTotal", 0);
   localStorage.setItem(`monthlySavings-${currentMonth}`, 0);
 
-  updateSavingsInput();
+  updateSavingsDisplay();
   updateTotals();
 });
 
 renderItems()
 sortItems()
-updateSavingsInput()
+updateSavingsDisplay()
+getCurrentMonth()
 updateTotals()
 renderPreviousMonth()
 
