@@ -273,7 +273,7 @@ const updateTotals = () => {
   // ✅ Subtract ONLY this month's savings
   const incomeMinusSavings = incomeSum - monthlySavings;
 
-  const totalBalance = incomeSum - expenseSum;
+  const totalBalance = incomeMinusSavings - expenseSum;
 
   document.getElementById("expense-total").textContent =
     formatMoney(expenseSum);
