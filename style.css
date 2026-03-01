@@ -424,11 +424,7 @@ input:focus {
   justify-content: center;
 }
 
-.income-line {
-  width: 100px;
-  background-color: #16a34a;
-  position: relative;
-}
+
 
 .income-line:after {
   content: "Total Income";
@@ -442,10 +438,23 @@ input:focus {
   font-size: 13px;
   margin: auto;
   justify-content: center;
+  text-align: center;
+}
+
+.income-line {
+  width: 70px;
+  background-color: #16a34a;
+  position: relative;
 }
 .expenses-line {
   background-color: #dc2626;
-  width: 100px;
+  width: 70px;
+  position: relative;
+}
+
+.savings-line {
+  background-color: #2563eb;
+  width: 70px;
   position: relative;
 }
 
@@ -461,13 +470,10 @@ input:focus {
   font-size: 13px;
   margin: auto;
   justify-content: center;
+  text-align: center;
 }
 
-.savings-line {
-  background-color: #2563eb;
-  width: 100px;
-  position: relative;
-}
+
 
 .savings-line:after {
   content: "Savings";
@@ -481,6 +487,7 @@ input:focus {
   font-size: 13px;
   margin: auto;
   justify-content: center;
+  text-align: center;
 }
 
 #previous-month-summary {
@@ -506,4 +513,23 @@ input:focus {
 .month-summary .blue {
   color: #2563eb;
   font-weight: bold;
+}
+
+@media (width >= 990px) {
+  .income-line {
+    width: 100px;
+    background-color: #16a34a;
+    position: relative;
+  }
+  .expenses-line {
+    background-color: #dc2626;
+    width: 100px;
+    position: relative;
+  }
+
+  .savings-line {
+    background-color: #2563eb;
+    width: 100px;
+    position: relative;
+  }
 }
