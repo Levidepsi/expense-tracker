@@ -227,21 +227,34 @@ const incomeSavingsTotalSpan = document.getElementById("income-savings-total");
 
 // create a function to handle state when updates
 const updateTotals = () => {
+
   const expenseSum = sortedItems
     .filter(item => item.type === "expense")
     .reduce((acc, item) => acc + item.amount, 0);
 
   const incomeSum = sortedItems
-    .filter(item => item.type === "income" && !item.description.toLowerCase().includes("savings"))
+    .filter(item => item.type === "income" &&
+      !item.description.toLowerCase().includes("savings"))
     .reduce((acc, item) => acc + item.amount, 0);
 
-  const savingsSum = localStorage.getItem("addedSavingsTotal")
+  // ✅ Get current month
+  const now = new Date();
+  const currentMonth = now.getFullYear() + "-" + (now.getMonth() + 1);
+
+  // ✅ Lifetime savings (for display / graph only)
+  const lifetimeSavings =
+    Number(localStorage.getItem("savingsTotal")) || 0;
+
+  // ✅ This month's savings (for income deduction)
+  const monthlySavings =
+    Number(localStorage.getItem(`monthlySavings-${currentMonth}`)) || 0;
 
   const incomeLine = document.querySelector(".income-line");
   const expenseLine = document.querySelector(".expenses-line");
   const savingsLine = document.querySelector(".savings-line");
 
-  const largest = Math.max(incomeSum, expenseSum);
+  // Graph compares lifetime savings
+  const largest = Math.max(incomeSum, expenseSum, lifetimeSavings);
 
   let incomePercent = 0;
   let expensePercent = 0;
@@ -250,46 +263,45 @@ const updateTotals = () => {
   if (largest > 0) {
     incomePercent = (incomeSum / largest) * 100;
     expensePercent = (expenseSum / largest) * 100;
-    savingsPercent = (savingsSum / largest) * 100;
+    savingsPercent = (lifetimeSavings / largest) * 100;
   }
 
-  // ✅ Apply height correctly (NO subtraction)
   incomeLine.style.height = incomePercent + "%";
   expenseLine.style.height = expensePercent + "%";
   savingsLine.style.height = savingsPercent + "%";
 
-  const newIncomeSum = incomeSum - savingsSum
+  // ✅ Subtract ONLY this month's savings
+  const incomeMinusSavings = incomeSum - monthlySavings;
 
   const totalBalance = incomeSum - expenseSum;
 
-  document.getElementById("expense-total").textContent = formatMoney(expenseSum);
-  document.getElementById("income-total").textContent = formatMoney(incomeSum);
-  document.getElementById("balance-total").textContent = formatMoney(totalBalance);
-  document.getElementById("income-savings-total").textContent = formatMoney(newIncomeSum);
+  document.getElementById("expense-total").textContent =
+    formatMoney(expenseSum);
 
-  // ✅ ===== SAVE MONTHLY DATA =====
-  const now = new Date();
-  const currentMonth = now.getFullYear() + "-" + (now.getMonth() + 1);
+  document.getElementById("income-total").textContent =
+    formatMoney(incomeSum);
 
-  // Get stored month tracker
+  document.getElementById("balance-total").textContent =
+    formatMoney(totalBalance);
+
+  document.getElementById("income-savings-total").textContent =
+    formatMoney(incomeMinusSavings);
+
+  // ===== Save Monthly Data =====
   const storedMonth = localStorage.getItem("current-month");
+  const monthlyData =
+    JSON.parse(localStorage.getItem("monthly-data")) || {};
 
-  // Get all monthly saved data
-  const monthlyData = JSON.parse(localStorage.getItem("monthly-data")) || {};
-
-  // 🚨 If month changed
   if (storedMonth && storedMonth !== currentMonth) {
-    // Save PREVIOUS month data before switching
     monthlyData[storedMonth] = {
       income: incomeSum,
       expense: expenseSum,
-      savings: savingsSum
+      savings: monthlySavings
     };
 
     localStorage.setItem("monthly-data", JSON.stringify(monthlyData));
   }
 
-  // Update current month tracker
   localStorage.setItem("current-month", currentMonth);
 };
 
@@ -312,13 +324,16 @@ function renderPreviousMonth() {
 
   const monthName = prevDate.toLocaleString("default", { month: "long" });
   const year = prevDate.getFullYear();
+  const savings = Number(prevData.savingsSum)
+  console.log(savings)
+
 
   container.innerHTML = `
     <div class="month-summary">
-      <h3>${monthName} ${year}</h3>
+      <h3>${monthName} ${year} </h3>
       <p>Income: <span class="green">${formatMoney(prevData.income)}</span></p>
       <p>Expenses: <span class="red">${formatMoney(prevData.expense)}</span></p>
-      <p>Expenses: <span class="blue">${formatMoney(prevData.savingsSum)}</span></p>
+      <p>Savings: <span class="blue">${formatMoney(savings)}</span></p>
     </div>
   `;
 }
@@ -336,69 +351,80 @@ function sortItems() {
   });
 }
 
-let savings_btn = document.getElementById("savings-btn")
-let savings_input = document.querySelector(".total-savings-input")
-let savings_input_hidden = document.querySelector(".total-savings-input-hidden")
+const savings_btn = document.getElementById("savings-btn");
+const clear_btn = document.getElementById("clear-btn");
+const savings_input = document.querySelector(".total-savings-input");
+const savings_input_hidden = document.querySelector(".total-savings-input-hidden");
 
+// Get current month key (ex: 2026-2)
+const currentMonth = localStorage.getItem("current-month");
+
+// Update displayed savings total
 const updateSavingsInput = () => {
-
-  const findSaving = sortedItems.find(item =>
-    item.description.includes("Savings")
-  );
-
-  const getSavingsTotal =
+  if (localStorage.getItem("savingsTotal") === null) {
+    localStorage.setItem("savingsTotal", 3000); // 👈 your initial savings
+  }
+  const totalSavings =
     Number(localStorage.getItem("savingsTotal")) || 0;
 
-
-  savings_input.value = getSavingsTotal ;
+  savings_input.value = totalSavings;
 };
-
+// Add Savings
 savings_btn.addEventListener("click", () => {
   const isEditing = savings_btn.textContent === "Done";
 
   if (isEditing) {
-    let inputValue = Number(savings_input.value) || 0;
 
-    let addedAmount = inputValue
+    const newInputTotal = Number(savings_input.value) || 0;
 
-   
-    const currentSavings =
+    const now = new Date();
+    const currentMonth = now.getFullYear() + "-" + (now.getMonth() + 1);
+
+    const currentTotal =
       Number(localStorage.getItem("savingsTotal")) || 0;
 
-    const newTotal = inputValue < currentSavings ? currentSavings - inputValue : inputValue > currentSavings ? inputValue : currentSavings + inputValue;
-     if (inputValue > currentSavings) {
-      addedAmount = inputValue - currentSavings
-     } else if(inputValue < currentSavings) {
-       addedAmount = 0
+    const currentMonthSavings =
+      Number(localStorage.getItem(`monthlySavings-${currentMonth}`)) || 0;
+
+    // 🔥 Calculate only the difference
+    const difference = newInputTotal - currentTotal;
+
+    // Update lifetime total
+    localStorage.setItem("savingsTotal", newInputTotal);
+
+    // Update this month's savings by difference
+    const updatedMonthSavings = currentMonthSavings + difference;
+
+    if (updatedMonthSavings < 0) {
+      updatedMonthSavings = 0;
     }
 
-    localStorage.setItem("savingsTotal", newTotal);
-    localStorage.setItem("addedSavingsTotal", addedAmount);
-
-    savings_input_hidden.value = newTotal;
+    localStorage.setItem(
+      `monthlySavings-${currentMonth}`,
+      updatedMonthSavings
+    );
 
     savings_input.setAttribute("readonly", true);
     savings_btn.textContent = "Edit/Add Savings";
 
     updateSavingsInput();
-    updateTotals()
+    updateTotals();
+
   } else {
     savings_input.removeAttribute("readonly");
-    savings_input.value = ""; // optional: clear input when adding
     savings_input.focus();
     savings_btn.textContent = "Done";
   }
 });
 
-const clear_btn = document.getElementById("clear-btn")
-
-
+// Clear All Savings
 clear_btn.addEventListener("click", () => {
   localStorage.setItem("savingsTotal", 0);
-  localStorage.setItem("addedSavingsTotal", 0);
+  localStorage.setItem(`monthlySavings-${currentMonth}`, 0);
+
   updateSavingsInput();
-  updateTotals()
-})
+  updateTotals();
+});
 
 renderItems()
 sortItems()
