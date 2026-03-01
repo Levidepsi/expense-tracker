@@ -324,7 +324,7 @@ function renderPreviousMonth() {
 
   const monthName = prevDate.toLocaleString("default", { month: "long" });
   const year = prevDate.getFullYear();
-  const savings = Number(prevData.savingsSum)
+  const savings = Number(prevData.savings) || 0;
   console.log(savings)
 
 
