@@ -379,13 +379,19 @@ const updateSavingsDisplay = () => {
 
 updateSavingsDisplay();
 
-
 // ==============================
 // EDIT / ADD SAVINGS
 // ==============================
 savings_btn.addEventListener("click", () => {
 
   const isEditing = savings_btn.textContent === "Done";
+
+  const incomeSum = sortedItems
+    .filter(item =>
+      item.type === "income" &&
+      !item.description.toLowerCase().includes("savings")
+    )
+    .reduce((acc, item) => acc + item.amount, 0);
 
   if (isEditing) {
 
@@ -399,6 +405,13 @@ savings_btn.addEventListener("click", () => {
     const currentMonthSavings =
       Number(localStorage.getItem(`monthlySavings-${currentMonth}`)) || 0;
 
+    // 🚨 VALIDATION: Prevent savings greater than income
+    if (newInputTotal > incomeSum) {
+      alert("Savings cannot be greater than total income.");
+      savings_input.value = currentTotal; // reset input
+      return;
+    }
+
     // Calculate difference
     const difference = newInputTotal - currentTotal;
 
@@ -408,7 +421,6 @@ savings_btn.addEventListener("click", () => {
     // Update this month's savings (ONLY difference)
     let updatedMonthSavings = currentMonthSavings + difference;
 
-    // Prevent negative monthly savings
     if (updatedMonthSavings < 0) {
       updatedMonthSavings = 0;
     }
@@ -431,7 +443,6 @@ savings_btn.addEventListener("click", () => {
   }
 
 });
-
 
 // ==============================
 // CLEAR SAVINGS
